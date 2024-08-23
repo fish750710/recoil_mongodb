@@ -23,6 +23,7 @@ function App() {
       .catch((error) => console.error("获取用户数据时出错:", error));
   };
   const createUser = () => {
+    // console.log(user, "user");
     fetch("/api/users", {
       method: "POST",
       headers: {

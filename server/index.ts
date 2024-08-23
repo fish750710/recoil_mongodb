@@ -1,22 +1,20 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+// const dotenv = require("dotenv");
+const compression = require("compression"); // 壓縮傳輸
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser"); // 解析請求體
+const helmet = require("helmet"); // 安全 預防XSS攻擊
+
+// console.log(dotenv.config(), dotenv);
 
 const app = express();
 const port = 3000;
 
-app.use(cors());
-app.use(express.json());
+import api from "./api-mediators";
 
-const mongoURI =
-  "mongodb+srv://fish750710:750710@cluster0.karnl.mongodb.net/mydb?retryWrites=true&w=majority&appName=Cluster0";
-mongoose
-  .connect(mongoURI)
-  .then(() => {
-    console.log("MongoDB 连接成功");
-    // console.log("当前数据库：", mongoose.connection.db.databaseName);
-  })
-  .catch((err: any) => console.error("MongoDB 连接错误:", err));
+app.use(cors()).use(compression()).use(express.json()).use(cookieParser()).use(bodyParser.json()).use(helmet()).use('/api', api);
+
 
 // app.get("/", (req, res) => {
 //   res.send("Hello World", req, res);
@@ -29,38 +27,4 @@ mongoose
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-});
-
-// 创建用户模型
-const userSchema = new mongoose.Schema({
-  name: String,
-  age: Number,
-});
-
-const User = mongoose.model("User", userSchema);
-// 创建新用户
-app.post("/users", async (req:any, res:any) => {
-  try {
-    // console.log(req.body, "***");
-    const newUser = new User(req.body);
-    await newUser.save();
-
-    // 立即查询并打印所有用户
-    // const allUsers = await User.find();
-    // console.log("所有用户：", allUsers);
-
-    res.status(201).json(newUser);
-  } catch (error:any) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// 获取所有用户
-app.get("/users", async (req:any, res:any) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
-  }
 });
