@@ -1,5 +1,5 @@
-import { Router } from "express";
-const mongoose = require("mongoose");
+import { Router, Request, Response } from "express";
+import mongoose, { Schema, Document } from "mongoose";
 
 const router = Router();
 
@@ -11,29 +11,39 @@ mongoose
     console.log("MongoDB 连接成功");
     // console.log("当前数据库：", mongoose.connection.db.databaseName);
   })
-  .catch((err: any) => console.error("MongoDB 连接错误:", err));
+  .catch((err: Error) => console.error("MongoDB 连接错误:", err));
+
+// 创建用户接口
+interface IUser extends Document {
+  name: string;
+  age: number;
+}
 
 // 创建用户模型
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema<IUser>({
   name: String,
   age: Number,
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 
 // 获取所有用户
-router.get("/*", async (req:any, res:any) => {
+router.get("/*", async (req: Request, res: Response) => {
   try {
     const users = await User.find();
     res.json(users);
-  } catch (error:any) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "发生未知错误" });
+    }
   }
 });
-// // 创建新用户
-router.post("/*", async (req:any, res:any) => {
+
+// 创建新用户
+router.post("/*", async (req: Request, res: Response) => {
   try {
-    // console.log(req.body, "***");
     const newUser = new User(req.body);
     await newUser.save();
 
@@ -42,8 +52,12 @@ router.post("/*", async (req:any, res:any) => {
     // console.log("所有用户：", allUsers);
 
     res.status(201).json(newUser);
-  } catch (error:any) {
-    res.status(400).json({ message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(400).json({ message: "创建用户时发生未知错误" });
+    }
   }
 });
 

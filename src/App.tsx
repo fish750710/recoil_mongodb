@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { userState, userStatusState, currentUserIDState } from "./store/user";
+import { userState, currentUserIDState } from "./store/user";
+
+interface User {
+  _id: string;
+  name: string;
+  age: number;
+}
 
 function App() {
   const [count, setCount] = useState(0);
   const [user, setUser] = useRecoilState(userState);
   const userData = useRecoilValue(userState);
   const userId = useRecoilValue(currentUserIDState);
-  const [userList, setUserList] = useState([]);
+  const [userList, setUserList] = useState<User[]>([]);
 
   console.log(userId, "userId");
 
@@ -19,11 +25,11 @@ function App() {
   const getUserList = () => {
     fetch("/api/users")
       .then((res) => res.json())
-      .then((data) => setUserList(data))
+      .then((data: User[]) => setUserList(data))
       .catch((error) => console.error("获取用户数据时出错:", error));
   };
+
   const createUser = () => {
-    // console.log(user, "user");
     fetch("/api/users", {
       method: "POST",
       headers: {
@@ -32,7 +38,7 @@ function App() {
       body: JSON.stringify(user),
     })
       .then((res) => res.json())
-      .then((data) => getUserList())
+      .then(() => getUserList())
       .catch((error) => console.error("错误:", error));
   };
 
@@ -56,7 +62,7 @@ function App() {
       <input
         type="text"
         id="name"
-        onChange={(e) => {
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           setUser((oldValue) => ({ ...oldValue, name: e.target.value }));
         }}
       />
@@ -64,7 +70,7 @@ function App() {
       <input
         type="number"
         id="age"
-        onChange={(e) => {
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           setUser((oldValue) => ({
             ...oldValue,
             age: parseInt(e.target.value, 10),
@@ -73,7 +79,7 @@ function App() {
       />
       <button onClick={createUser}>创建新用户</button>
       <button onClick={getUserList}>获取所有用户</button>
-      {userList.map((user: any) => (
+      {userList.map((user: User) => (
         <div key={user._id} style={{ display: "flex" }}>
           <p>{user.name}</p>&emsp;
           <p>{user.age}</p>

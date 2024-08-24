@@ -1,6 +1,12 @@
 import { atom, selector, waitForAll, atomFamily, selectorFamily } from "recoil";
 
-const userState = atom({
+interface UserState {
+  name: string;
+  age: number;
+  status: number;
+}
+
+const userState = atom<UserState>({
   key: "userState",
   default: {
     name: "hans",
@@ -9,7 +15,7 @@ const userState = atom({
   },
 });
 
-const userStatusState = selector({
+const userStatusState = selector<string>({
   key: "userStatusState",
   get: ({ get }) => {
     const userStatus = get(userState);
@@ -19,10 +25,9 @@ const userStatusState = selector({
   },
 });
 
-const myFetchCurrentUserID = () => "abcde";
+const myFetchCurrentUserID = (): string => "abcde";
 
-// 查詢默認值
-const currentUserIDState = atom({
+const currentUserIDState = atom<string>({
   key: "CurrentUserID",
   default: selector({
     key: "CurrentUserID/Default",
@@ -30,40 +35,45 @@ const currentUserIDState = atom({
   }),
 });
 
-// API
-const fetchUserData = selector({
+const fetchUserData = selector<string>({
   key: "fetchUserData",
   get: async ({ get }) => {
-    const res = await fetch("/").then((res) => res.json);
-    // const [users, posts] = get(waitForAll([userState, postsState])); // 並行請求 類似 Promise.all
-    // const results = get(waitForNone([userState, postsState])); Promise.allSettled
+    const res = await fetch("/").then((res) => res.json());
     return "data" + res;
   },
 });
 
-const userState2 = atomFamily({
+interface UserData {
+  id: string;
+  name: string;
+  // 其他属性...
+}
+
+const userState2 = atomFamily<UserData, string>({
   key: "userState2",
-  default: async (userId) => {
+  default: async (userId: string) => {
     const response = await fetch(`https://api.example.com/users/${userId}`);
-    const data = await response.json();
+    const data: UserData = await response.json();
     return data;
   },
 });
 
-// 無狀態，每次都會重新計算
-const userState3 = selectorFamily({
+const userState3 = selectorFamily<UserData, string>({
   key: "userState3",
-  get:
-    (userID) =>
-    async ({ get }) => {
-      const response = await fetch(`https://api.example.com/users/${userID}`);
-      const data = await response.json();
-      return data;
-    },
+  get: (userID: string) => async ({ get }) => {
+    const response = await fetch(`https://api.example.com/users/${userID}`);
+    const data: UserData = await response.json();
+    return data;
+  },
 });
 
-// 定义一个组合 selector 来并发执行多个请求
-export const fetchAllDataSelector = selector({
+interface FetchResult {
+  firstData: any | null;
+  secondData: any | null;
+  errors: Error[];
+}
+
+export const fetchAllDataSelector = selector<FetchResult>({
   key: "fetchAllDataSelector",
   get: async ({ get }) => {
     const firstDataPromise = get(fetchFirstDataSelector);
@@ -78,12 +88,10 @@ export const fetchAllDataSelector = selector({
     const secondDataResult = results[1];
 
     return {
-      firstData:
-        firstDataResult.status === "fulfilled" ? firstDataResult.value : null,
-      secondData:
-        secondDataResult.status === "fulfilled" ? secondDataResult.value : null,
+      firstData: firstDataResult.status === "fulfilled" ? firstDataResult.value : null,
+      secondData: secondDataResult.status === "fulfilled" ? secondDataResult.value : null,
       errors: results
-        .filter((result) => result.status === "rejected")
+        .filter((result): result is PromiseRejectedResult => result.status === "rejected")
         .map((result) => result.reason),
     };
   },
