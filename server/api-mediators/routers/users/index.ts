@@ -28,7 +28,7 @@ const userSchema = new Schema<IUser>({
 const User = mongoose.model<IUser>("User", userSchema);
 
 // 获取所有用户
-router.get("/*", async (req: Request, res: Response) => {
+router.get("/getUsers", async (req: Request, res: Response) => {
   try {
     const users = await User.find();
     res.json(users);
@@ -42,7 +42,7 @@ router.get("/*", async (req: Request, res: Response) => {
 });
 
 // 创建新用户
-router.post("/*", async (req: Request, res: Response) => {
+router.post("/addUser", async (req: Request, res: Response) => {
   try {
     const newUser = new User(req.body);
     await newUser.save();
@@ -57,6 +57,24 @@ router.post("/*", async (req: Request, res: Response) => {
       res.status(400).json({ message: error.message });
     } else {
       res.status(400).json({ message: "创建用户时发生未知错误" });
+    }
+  }
+});
+
+// 删除用户
+router.delete("/deleteUser/:id", async (req: Request, res: Response) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) {
+      res.status(404).json({ message: "未找到用户" });
+    } else {
+      res.json(deletedUser);
+    }
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "删除用户时发生未知错误" });
     }
   }
 });

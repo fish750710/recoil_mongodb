@@ -13,8 +13,14 @@ const port = 3000;
 
 import api from "./api-mediators";
 
-app.use(cors()).use(compression()).use(express.json()).use(cookieParser()).use(bodyParser.json()).use(helmet()).use('/api', api);
-
+app
+  .use(cors())
+  .use(compression())
+  .use(express.json())
+  .use(cookieParser())
+  .use(bodyParser.json())
+  .use(helmet())
+  .use("/api", api);
 
 // app.get("/", (req, res) => {
 //   res.send("Hello World", req, res);

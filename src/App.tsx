@@ -4,15 +4,8 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { useStores } from "./hooks";
 import { userState, currentUserIDState } from "./store/user";
 
-interface User {
-  _id: string;
-  name: string;
-  age: number;
-}
-
 function App() {
   const [count, setCount] = useState(0);
-  const [userList, setUserList] = useState<User[]>([]);
   // recoil
   const [user, setUser] = useRecoilState(userState);
   const userData = useRecoilValue(userState);
@@ -20,32 +13,16 @@ function App() {
   // zustand
   const { userState: userState1, systemState } = useStores();
   const validCode = userState1((state) => state.validCode);
+  const userList = userState1((state) => state.userList);
+  const getUserList = userState1((state) => state.getUserList);
+  const createUser = userState1((state) => state.createUser);
+  const deleteUser = userState1((state) => state.deleteUser);
   const loading = systemState((state) => state.loading);
   const setLoading = systemState((state) => state.setLoading);
 
   useEffect(() => {
     getUserList();
   }, []);
-
-  const getUserList = () => {
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data: User[]) => setUserList(data))
-      .catch((error) => console.error("获取用户数据时出错:", error));
-  };
-
-  const createUser = () => {
-    fetch("/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user),
-    })
-      .then((res) => res.json())
-      .then(() => getUserList())
-      .catch((error) => console.error("错误:", error));
-  };
 
   return (
     <>
@@ -92,12 +69,16 @@ function App() {
           }));
         }}
       />
-      <button onClick={createUser}>創建新用户</button>
+      <button onClick={() => createUser(user)}>創建新用户</button>
       <button onClick={getUserList}>獲取所有用户</button>
-      {userList.map((user: User) => (
-        <div key={user._id} style={{ display: "flex" }}>
+      {userList.map((user) => (
+        <div
+          key={user._id}
+          style={{ display: "flex", justifyContent: "space-between" }}
+        >
           <p>{user.name}</p>&emsp;
           <p>{user.age}</p>
+          <button onClick={() => deleteUser(user._id)}>刪除</button>
         </div>
       ))}
     </>
