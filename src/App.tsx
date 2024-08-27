@@ -2,15 +2,20 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { userState, userStatusState, currentUserIDState } from "./store/user";
+import { useStores } from "./hooks";
 
 function App() {
   const [count, setCount] = useState(0);
+  const [userList, setUserList] = useState([]);
+  // recoil
   const [user, setUser] = useRecoilState(userState);
   const userData = useRecoilValue(userState);
   const userId = useRecoilValue(currentUserIDState);
-  const [userList, setUserList] = useState([]);
-
-  console.log(userId, "userId");
+  // zustand
+  const { userState: userState1, systemState } = useStores();
+  const validCode = userState1((state) => state.validCode);
+  const loading = systemState((state) => state.loading);
+  const setLoading = systemState((state) => state.setLoading);
 
   useEffect(() => {
     getUserList();
@@ -39,10 +44,20 @@ function App() {
   return (
     <>
       <div>
-        {user?.name}
-        {user?.age} | {userData.age}
+        <h3>zustand</h3>
+        validCode: {validCode}
+        <br />
+        Loading: {loading ? "true" : "false"}
+        <br />
+        <button onClick={() => setLoading(!loading)}>update data</button>
       </div>
       <div className="card">
+        <h3>recoil</h3>
+        <h4>userId: {userId}</h4>
+        <h5>
+          {user?.name}
+          {user?.age} | {userData.age}
+        </h5>
         <button
           onClick={() => {
             setCount((count) => count + 1);
@@ -71,8 +86,8 @@ function App() {
           }));
         }}
       />
-      <button onClick={createUser}>创建新用户</button>
-      <button onClick={getUserList}>获取所有用户</button>
+      <button onClick={createUser}>創建新用户</button>
+      <button onClick={getUserList}>獲取所有用户</button>
       {userList.map((user: any) => (
         <div key={user._id} style={{ display: "flex" }}>
           <p>{user.name}</p>&emsp;
