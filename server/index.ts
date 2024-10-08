@@ -5,11 +5,13 @@ const compression = require("compression"); // 壓縮傳輸
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser"); // 解析請求體
 const helmet = require("helmet"); // 安全 預防XSS攻擊
+// const Redis = require("ioredis");
 
 // console.log(dotenv.config(), dotenv);
 
 const app = express();
 const port = 3000;
+// const redis = new Redis({ host: "127.0.0.1", port: 6379 });
 
 import api from "./api-mediators";
 
